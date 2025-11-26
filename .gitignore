@@ -1,0 +1,20 @@
+# Python venv
+.venv/
+venv/
+env/
+
+# Bytecode & cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# OS / editor files
+.DS_Store
+Thumbs.db
+
+# ADK / logs
+.adk/
+logs/
+.env
+.env.*
