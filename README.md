@@ -1,115 +1,94 @@
-# LeetCode DSA Study Co-Pilot
+# LeetCode DSA Study Co-Pilot (Google ADK)
 
-This project is my capstone submission for the **Agents Intensive – Capstone Project** on Kaggle.  
-It is built using **Google ADK (Python)** and implements a **multi-agent LeetCode DSA study coach** that plans practice, tracks progress, and adjusts daily goals over time.
+An AI-powered **study companion for LeetCode data structures & algorithms (DSA)**, built with the **Google AI Agent Development Kit (ADK)** in Python.
 
-## Capstone Context
+The agent helps you:
 
-- **Track:** Concierge Agents
-- **Goal:** Help an individual prepare for LeetCode / DSA interviews more efficiently by automating planning and progress tracking.
-- **Key agent concepts used (for the capstone rubric):**
-  - Multi-agent system (planner, check-in, adjuster agents)
-  - Tools (custom tools for saving/loading plans and progress)
-  - Sessions & memory (persistent user profile + study history)
-  - Observability (logging and traces via ADK)
-  - Deployment (agent deployed using Google ADK tooling)
+- Design a **4-week DSA study plan** tailored to your profile.
+- **Persist your study state** locally as JSON (`profile`, `plan`, `progress_log`).
+- Track your progress through **daily check-ins** (what you solved, what’s pending).
 
-## Problem Statement
+Everything runs **locally** using your **Google API key**. No Google Cloud billing or deployment is required.
 
-Preparing for coding interviews on platforms like LeetCode is time-consuming and hard to plan.  
-Many learners:
+---
 
-- Don’t know which topics to focus on each week,
-- Struggle to balance easy/medium/hard problems,
-- Lose track of what they actually solved,
-- And rarely adjust their plan based on real progress.
+## 1. Project Overview
 
-The **LeetCode DSA Study Co-Pilot** acts as a personal planning and tracking assistant for LeetCode-style practice.
+### Goal
 
-## Solution Overview
+Support a DSA learner (especially preparing for **product-based company interviews**) by:
 
-The agent:
+1. Understanding their **current level**, **timeline**, and **time budget**.
+2. Generating a **structured 4-week LeetCode plan** (topics + daily problem sets).
+3. Persisting their **profile, plan, and progress** across sessions.
+4. Making **daily check-ins** easy and consistent, so they always know:
+   - What they should do today,
+   - What they already completed,
+   - Where they are stuck.
 
-- Collects the user’s goals (target company/timeline), current level, and daily available time.
-- Generates a **weekly topic + problem-count plan** (e.g., “Mon: 2 Easy + 1 Medium Array, Tue: …”).
-- Runs daily check-ins to log how many problems were actually solved and in which topics.
-- Adjusts the upcoming plan when the user falls behind or struggles with certain topics.
-- Persists user profile, plans, and progress across sessions.
+### Key Features
 
-## Architecture (High Level)
+- **LeetCode-focused planning**: Arrays/Strings, Linked Lists, Trees/Graphs, Dynamic Programming.
+- **Stateful**: Uses a local JSON file to save `profile`, `plan`, and `progress_log`.
+- **Daily progress logging**: Appends entries such as _“Solved Two Sum and Valid Palindrome but not Reverse String”_ with timestamps.
+- **Natural language interface**: You just chat in plain English from the terminal.
 
-- **Root Agent:** Orchestrates the overall conversation and delegates to sub-agents.
-- **GoalSettingAgent:** Gathers initial profile and LeetCode goals.
-- **PlannerAgent:** Creates or updates the weekly plan by topic and difficulty.
-- **DailyCheckinAgent:** Records daily progress from the user.
-- **AdjusterAgent:** Compares planned vs actual work and rebalances the schedule.
+---
 
-**Tools (planned):**
+## 2. Architecture
 
-- `save_profile_and_plan` – stores user profile, active plan, and history.
-- `load_profile_and_plan` – retrieves stored state for the current session.
-- `log_event` – writes simple logs (for observability).
+### 2.1 High-Level
 
-**Memory and Storage:**
+- **Google ADK LLM Agent** (root agent)
 
-- Lightweight JSON/SQLite store in the project folder (ignored by git).
-- ADK session state for short-term context within a conversation.
+  - Backed by a Gemini model (configured when `adk create` was run; e.g., `gemini-2.5-flash`).
+  - Knows the user’s context (profile, plan, time budget).
+  - Can call **tools** to read/write local JSON files and log events.
 
-As the implementation is completed, this section will be updated with more detailed architecture and diagrams.
+- **Tools (Python functions wrapped via ADK)**
+  - `load_study_state`  
+    Reads a local JSON file (e.g., `study_state.json`) and returns:
+    ```json
+    {
+      "profile": { ... },
+      "plan": { ... },
+      "progress_log": [ ... ]
+    }
+    ```
+  - `save_study_state`  
+    Writes the full JSON state back to disk.
+  - `append_daily_checkin` / logging helpers  
+    Adds an entry to `progress_log` including a timestamp and human-readable note.
+  - `log_event`  
+    Optionally writes a short event line to a text log (e.g., `session_log.txt`) for debugging / auditing.
 
-## Project Structure
+The agent uses these tools in combination with natural language instructions to implement three flows: **A. Plan Design**, **B. State Management**, **C. Daily Check-ins**.
 
-- `study_copilot_agent/`
-  - `agent.py` – root agent definition (will orchestrate sub-agents and tools).
-  - `__init__.py` – package initializer.
-  - `.env` – environment variables for local development (not committed).
-- `.gitignore` – excludes `.venv`, `.env`, logs, etc.
-- `.venv/` – local virtual environment (not committed).
+### 2.2 Local State Format
 
-## Getting Started (Local Development)
+The state is a JSON file, for example `study_copilot_agent/study_state.json`, with this structure:
 
-### Prerequisites
-
-- Python 3.10+ installed
-- A Google AI Studio (Gemini) API key
-
-### Setup
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/SAIVIKRAMCHAVA/leetcode-dsa-study-copilot.git
-   cd leetcode-dsa-study-copilot
-   ```
-
-2. Create and activate a virtual environment (example for Windows):
-
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate
-   ```
-
-3. Install dependencies:
-
-   ```bash
-   pip install google-adk
-   ```
-
-4. Configure your API key:
-   Create a file named `.env` inside `study_copilot_agent/` with:
-   ```bash
-   GOOGLE_API_KEY=your_api_key_here
-   ```
-   Note: Do NOT commit this file. It is already listed in `.gitignore`.
-
-### Running the Agent
-
-From the project root:
-
-```bash
-adk run study_copilot_agent
+```json
+{
+  "profile": {
+    "level": "intermediate",
+    "timeline": "3 months",
+    "time_budget": "2 hours per day",
+    "target_role": "product-based interviews",
+    "strong_topics": [],
+    "weak_topics": []
+  },
+  "plan": {
+    "week_1": { "...": "..." },
+    "week_2": { "...": "..." },
+    "week_3": { "...": "..." },
+    "week_4": { "...": "..." }
+  },
+  "progress_log": [
+    {
+      "timestamp": "2025-11-27T13:55:45Z",
+      "note": "Solved Two Sum and Valid Palindrome but not Reverse String."
+    }
+  ]
+}
 ```
-
-You can then chat with the agent in the terminal.
-
-(Later, this section will be expanded with specific prompts for creating a new study plan, checking in daily, etc.)
