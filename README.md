@@ -115,7 +115,7 @@ git clone https://github.com/SAIVIKRAMCHAVA/leetcode-dsa-study-copilot.git
 cd leetcode-dsa-study-copilot
 ```
 
-###3.3 Create and activate a virtual environment (Windows)
+### 3.3 Create and activate a virtual environment (Windows)
 
 ```bash
 python -m venv .venv
@@ -138,7 +138,7 @@ pip install -r requirements.txt
 
 ### 3.5 Configure the Google API key
 
-Inside the `study_copilot_agent/` folder there is a `.env` file.
+Inside the `study_copilot_agent/` folder there is a `.env` file.  
 Open it and set your API key:
 
 ```text
@@ -165,7 +165,7 @@ Running agent leetcode_dsa_study_copilot, type exit to exit.
 [user]:
 ```
 
-You can now start chatting with the agent in the terminal.
+You can now start chatting with the agent in the terminal.  
 Type `exit` and press Enter to stop the agent.
 
 ---
@@ -196,7 +196,7 @@ The agent is primarily designed around three core flows that match the capstone 
   - **Week 2:** Linked Lists
   - **Week 3:** Trees & Graphs
   - **Week 4:** Dynamic Programming
-- For each day, suggests **3–6 LeetCode problems** (mix of Easy/Medium/Hard) aligned to the topic.
+- For each day, suggests **3–6 LeetCode problems** (mix of Easy/Medium/Hard) aligned to the topic.  
   The plan is later persisted in JSON via Flow B.
 
 ### 4.2 Flow B – Persist Study State (`profile`, `plan`, `progress_log`)
@@ -226,7 +226,7 @@ The agent is primarily designed around three core flows that match the capstone 
    - `progress_log` → an empty list `[]` if this is the first run
 4. Calls `save_study_state` to write the full JSON to disk.
 5. Calls `log_event` to record something like:
-   - `"event": "created_new_plan"` with a timestamp.
+   - `"event": "created_new_plan"` with a timestamp.  
      This makes the agent stateful: when you close and reopen it, it can continue from where you left off.
 
 ### 4.3 Flow C – Daily Check-ins and Progress Logging
@@ -278,12 +278,16 @@ The agent can also answer questions like “What should I do today?” based on 
 - Factors in `progress_log` (e.g., incomplete problems like “Reverse String”).
 - Responds with, for example:
   - **Topic:** Arrays and Strings
-  - **Today’s problems:** - Finish “Reverse String (Easy)” - “Group Anagrams (Medium)” (retry if needed) - “Longest Substring Without Repeating Characters (Medium)”
-    This makes the agent behave like a personal DSA coach that always knows your next step.
+  - **Today’s problems:**
+    - Finish “Reverse String (Easy)”
+    - “Group Anagrams (Medium)” (retry if needed)
+    - “Longest Substring Without Repeating Characters (Medium)”
+
+This makes the agent behave like a personal DSA coach that always knows your next step.
 
 ---
 
-## Project Structure
+## 6. Project Structure
 
 Simplified layout of the repository:
 
@@ -335,7 +339,3 @@ leetcode-dsa-study-copilot/
 - **Google AI Agent Development Kit (ADK)** for the agent runtime and tooling.
 - **Gemini models** (via `GOOGLE_API_KEY`) for the underlying LLM capabilities.
 - The **LeetCode** community for the extensive set of DSA problems that this project recommends (problem names are used for educational reference only).
-
-```makefile
-::contentReference[oaicite:0]{index=0}
-```
