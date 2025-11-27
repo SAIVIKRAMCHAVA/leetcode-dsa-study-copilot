@@ -18,3 +18,7 @@ Thumbs.db
 logs/
 .env
 .env.*
+
+# Study state & logs (local only)
+study_copilot_agent/study_state.json
+study_copilot_agent/session_log.txt
