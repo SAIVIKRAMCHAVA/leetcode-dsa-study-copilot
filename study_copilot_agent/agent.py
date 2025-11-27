@@ -117,6 +117,76 @@ def log_session_event(event_type: str, details: str) -> Dict[str, Any]:
             "message": f"Failed to write to {LOG_FILE.name}: {exc}",
         }
 
+def append_daily_checkin(note: str) -> Dict[str, Any]:
+    """
+    Append a daily progress entry to progress_log in study_state.json.
+
+    This tool will:
+      1) Load the existing study_state.json if it exists,
+         otherwise start from a minimal skeleton with
+         profile / plan / progress_log.
+      2) Append a new entry with a UTC timestamp and the note.
+      3) Save the updated state back to disk.
+      4) Log a 'daily_checkin' event to the session log.
+
+    Args:
+        note: Short natural-language description of what happened today.
+
+    Returns:
+        A dictionary with:
+        - status: "ok" or "error"
+        - message: human-readable status
+        - entries: number of progress_log entries after append (when ok)
+    """
+    # Load current state or create a minimal default
+    if STATE_FILE.exists():
+        try:
+            with STATE_FILE.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as exc:  # noqa: BLE001
+            return {
+                "status": "error",
+                "message": f"Could not load {STATE_FILE.name}: {exc}",
+            }
+    else:
+        data = {
+            "profile": {},
+            "plan": {},
+            "progress_log": [],
+        }
+
+    # Ensure progress_log is a list
+    progress = data.get("progress_log")
+    if not isinstance(progress, list):
+        progress = []
+        data["progress_log"] = progress
+
+    # Create a new entry
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "note": note[:500],
+    }
+    progress.append(entry)
+
+    # Save back to disk
+    try:
+        with STATE_FILE.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "status": "error",
+            "message": f"Failed to write to {STATE_FILE.name}: {exc}",
+        }
+
+    # Also log to the session log file
+    log_session_event("daily_checkin", note)
+
+    return {
+        "status": "ok",
+        "message": "Daily check-in appended.",
+        "entries": len(progress),
+    }
+
 
 # -------------------------------------------------------------------
 # Root agent: LeetCode DSA Study Co-Pilot
@@ -189,5 +259,5 @@ root_agent = Agent(
         "local progress tracking using Google ADK."
     ),
     instruction=INSTRUCTION,
-    tools=[load_study_state, save_study_state, log_session_event],
+    tools=[load_study_state, save_study_state, log_session_event, append_daily_checkin],
 )
